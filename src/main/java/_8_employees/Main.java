@@ -37,103 +37,27 @@ public class Main {
     Pattern peoplePat = Pattern.compile(peopleRegex, Pattern.COMMENTS);
     Matcher peopleMat = peoplePat.matcher(peopleText);
 
-    String progRegex = "\\w+=(?<locpd>\\w+),\\w+=(?<yoe>\\w+),\\w+=(?<iq>\\w+)";
-    Pattern coderPat = Pattern.compile(progRegex, Pattern.COMMENTS);
-
-    String mgrRegex = "\\w+=(?<orgSize>\\w+),\\w+=(?<dr>\\w+)";
-    Pattern mgrPat = Pattern.compile(mgrRegex, Pattern.COMMENTS);
-
-    String analystRegex = "\\w+=(?<projectCount>\\w+)";
-    Pattern analystPat = Pattern.compile(analystRegex, Pattern.COMMENTS);
-
-    String ceoRegex = "\\w+=(?<avgStockPrice>\\w+)";
-    Pattern ceoPat = Pattern.compile(ceoRegex, Pattern.COMMENTS);
-
     int totalSalaries = 0;
+    Employee employee = null;
     while (peopleMat.find()) {
       String details = peopleMat.group("details");
 
-      totalSalaries += switch (peopleMat.group("role")) {
-        case "Programmer" -> {
-          Matcher coderMat = coderPat.matcher(details);
-          int salary = 0;
-          if (coderMat.find()) {
-            int locpd = Integer.parseInt(coderMat.group("locpd"));
-            int yoe = Integer.parseInt(coderMat.group("yoe"));
-            int iq = Integer.parseInt(coderMat.group("iq"));
-//            System.out.printf("Programmer locpd: %s yoe: %s iq: %s%n", locpd, yoe, iq);
-            salary = 3000 + locpd * yoe * iq;
-          } else {
-            salary = 3000;
-          }
-          String lastName = peopleMat.group("lastName");
-          String firstName = peopleMat.group("firstName");
-          System.out.printf("%s, %s: %s%n", lastName, firstName,
-                  NumberFormat.getCurrencyInstance(Locale.US).format(salary));
-          yield salary;
-        }
-
-        case "Manager" -> {
-          Matcher mgrMat = mgrPat.matcher(details);
-          int salary = 0;
-          if (mgrMat.find()) {
-            int orgSize = Integer.parseInt(mgrMat.group("orgSize"));
-            int directReports = Integer.parseInt(mgrMat.group("dr"));
-//            System.out.printf("Manager orgSize: %s dr: %s%n", orgSize, directReports);
-            salary = 2500 + orgSize * directReports;
-          } else {
-            salary = 2500;
-          }
-          String lastName = peopleMat.group("lastName");
-          String firstName = peopleMat.group("firstName");
-          System.out.printf("%s, %s: %s%n", lastName, firstName,
-                  NumberFormat.getCurrencyInstance(Locale.US).format(salary));
-          yield salary;
-        }
-
-        case "Analyst" -> {
-          Matcher analystMat = analystPat.matcher(details);
-          int salary = 0;
-          if (analystMat.find()) {
-            int projectCount = Integer.parseInt(analystMat.group("projectCount"));
-//            System.out.printf("Analyst projectCount: %s %n", projectCount);
-            salary = 3500 + projectCount * 2;
-          } else {
-            salary = 3500;
-          }
-          String lastName = peopleMat.group("lastName");
-          String firstName = peopleMat.group("firstName");
-          System.out.printf("%s, %s: %s%n", lastName, firstName,
-                  NumberFormat.getCurrencyInstance(Locale.US).format(salary));
-          yield salary;
-        }
-
-        case "CEO" -> {
-          Matcher ceoMat = ceoPat.matcher(details);
-          int salary = 0;
-          if (ceoMat.find()) {
-            int avgStockPrice = Integer.parseInt(ceoMat.group("avgStockPrice"));
-//            System.out.printf("Ceo avgStockPrice: %s %n", avgStockPrice);
-            salary = 5000 * avgStockPrice;
-          } else {
-            salary = 5000;
-          }
-          String lastName = peopleMat.group("lastName");
-          String firstName = peopleMat.group("firstName");
-          System.out.printf("%s, %s: %s%n", lastName, firstName,
-                  NumberFormat.getCurrencyInstance(Locale.US).format(salary));
-          yield salary;
-        }
-
-        default -> 0;
+      employee = switch (peopleMat.group("role")) {
+        case "Programmer" -> new Programmer(peopleMat.group());
+        case "Manager" -> new Manager(peopleMat.group());
+        case "Analyst" -> new Analyst(peopleMat.group());
+        case "CEO" -> new CEO(peopleMat.group());
+        default -> new Nobody();
       };
+      System.out.println(employee.toString());
+      totalSalaries += employee.getSalary();
     }
-
     NumberFormat mfUSA = NumberFormat.getCurrencyInstance(Locale.US);
     System.out.printf("The total payout should be %s%n", mfUSA.format(totalSalaries));
 
   }
 }
+
 //    \\w == a-zA-Z0-9_
 //    \\d == 0-9
 //    \\s == space
